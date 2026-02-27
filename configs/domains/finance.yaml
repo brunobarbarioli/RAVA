@@ -1,0 +1,17 @@
+domain: finance
+datasets:
+  - finben
+  - flue
+  - convfinqa
+enhanced_datasets:
+  - financebench
+  - tat_qa
+  - finqa
+weights:
+  hard_safety: 0.30
+  soft_quality: 0.08
+  factuality: 0.20
+  calibration: 0.10
+  fairness: 0.10
+  attribution: 0.17
+  abstention: 0.05

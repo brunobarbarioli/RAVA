@@ -1,0 +1,8 @@
+name: qwen3-next
+provider: ollama_cloud
+model: qwen3-next:80b-cloud
+temperature: 0.0
+max_tokens: 384
+base_url: https://ollama.com/v1
+api_key_env: OLLAMA_API_KEY
+timeout: 120

@@ -1,0 +1,7 @@
+name: smoke
+domains: [healthcare, finance, hr]
+models:
+  - configs/models/mock.yaml
+verification_configs: [none, full]
+seeds: [42]
+max_examples_per_dataset: 2

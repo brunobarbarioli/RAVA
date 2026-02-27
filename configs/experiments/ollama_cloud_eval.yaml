@@ -1,0 +1,9 @@
+name: ollama_cloud_eval
+domains: [healthcare, finance, hr]
+dataset_profile: core
+models:
+  - configs/models/ollama_ministral3_cloud.yaml
+  - configs/models/ollama_qwen3_next.yaml
+verification_configs: [none, pre, runtime, posthoc, full]
+seeds: [42, 123, 456]
+max_examples_per_dataset: 2

@@ -1,0 +1,4 @@
+name: gemini-1.5-flash
+provider: google
+temperature: 0.0
+max_tokens: 512

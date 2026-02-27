@@ -1,0 +1,30 @@
+project:
+  name: rava
+  version: 0.1.0
+
+runtime:
+  seed: 42
+  device: cpu
+  log_level: INFO
+  runs_dir: runs
+  outputs_dir: outputs
+
+provider:
+  name: mock
+  model: mock-v1
+  temperature: 0.0
+  max_tokens: 256
+
+experiments:
+  seeds: [42, 123, 456]
+  verification_configs: [none, pre, runtime, posthoc, full]
+  max_examples_per_dataset: 20
+  save_trajectories: true
+
+metrics:
+  ece_bins: 10
+  skip_missing_confidence: true
+
+reproducibility:
+  capture_env: true
+  deterministic: true

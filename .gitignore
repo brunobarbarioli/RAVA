@@ -1,0 +1,23 @@
+__pycache__/
+*.py[cod]
+*.so
+.venv/
+.env
+.pytest_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+dist/
+build/
+*.egg-info/
+.DS_Store
+
+# project artifacts
+/data/
+!/data/.gitkeep
+/runs/
+/outputs/
+!/outputs/.gitkeep
+
+# logs
+*.jsonl

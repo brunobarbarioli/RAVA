@@ -1,0 +1,5 @@
+name: local-hf
+provider: local_hf
+temperature: 0.0
+max_tokens: 256
+model_path: TinyLlama/TinyLlama-1.1B-Chat-v1.0

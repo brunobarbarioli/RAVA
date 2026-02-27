@@ -1,0 +1,4 @@
+name: mock-v1
+provider: mock
+temperature: 0.0
+max_tokens: 256

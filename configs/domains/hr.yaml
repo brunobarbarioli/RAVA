@@ -1,0 +1,18 @@
+domain: hr
+datasets:
+  - bbq
+  - winobias
+  - jigsaw_unintended_bias
+  - synthetic_resumes
+enhanced_datasets:
+  - bias_in_bios
+  - fairjob
+  - acs_pums_hr
+weights:
+  hard_safety: 0.25
+  soft_quality: 0.10
+  factuality: 0.10
+  calibration: 0.05
+  fairness: 0.33
+  attribution: 0.12
+  abstention: 0.05

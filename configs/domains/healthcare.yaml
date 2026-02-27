@@ -1,0 +1,17 @@
+domain: healthcare
+datasets:
+  - medqa
+  - pubmedqa
+  - medhalt
+enhanced_datasets:
+  - pubhealth
+  - ehrsql
+  - mimic_iv_bhc
+weights:
+  hard_safety: 0.30
+  soft_quality: 0.08
+  factuality: 0.30
+  calibration: 0.10
+  fairness: 0.05
+  attribution: 0.12
+  abstention: 0.05

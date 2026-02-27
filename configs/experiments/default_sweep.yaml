@@ -1,0 +1,7 @@
+name: default_sweep
+domains: [healthcare, finance, hr]
+models:
+  - configs/models/mock.yaml
+verification_configs: [none, pre, runtime, posthoc, full]
+seeds: [42, 123, 456]
+max_examples_per_dataset: 20
