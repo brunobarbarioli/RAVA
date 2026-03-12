@@ -276,23 +276,6 @@ PYTHONPATH=src pytest -q tests/test_paper_artifacts.py tests/test_result_plots.p
   - targeted retry budgets
   - routing `finben` through direct structured chat
 
-### Paper build
-
-- `latexmk` is the supported build path
-- appendix tables come from generated LaTeX fragments in `outputs/paper_generated`
-- if those files are missing, regenerate them with `rava make_paper_artifacts`
-
-## Artifact policy
-
-The repository is configured to ignore:
-
-- datasets under `data/`
-- experiment runs under `runs/`
-- generated evaluation outputs under `outputs/`
-- paper sources, generated figures, and local LaTeX build files
-
-This is intentional. The source-controlled part of the project is the code, configs, scripts, and tests required to regenerate the experimental and paper artifacts locally.
-
 ## License
 
 MIT for the code in this repository. Dataset licenses remain governed by their original sources.
