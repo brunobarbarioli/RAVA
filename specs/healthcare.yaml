@@ -106,5 +106,5 @@ constraints:
     trigger:
       events: [batch_eval]
     predicate: metric_threshold
-    metric: ece
+    metric: ece_answered
     threshold: 0.12

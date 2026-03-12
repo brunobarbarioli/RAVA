@@ -6,6 +6,19 @@ from typing import Any
 from rava.specs.schema import ConstraintType, Specification, Verdict, VerificationAction
 from rava.verification.classifiers.rule_based import get_predicate
 
+try:
+    from langchain_core.runnables import RunnableLambda
+except Exception:  # pragma: no cover - optional dependency guard
+    RunnableLambda = None
+
+
+class _LocalRunnable:
+    def __init__(self, fn):
+        self._fn = fn
+
+    def invoke(self, payload: dict[str, Any]):
+        return self._fn(payload)
+
 
 @dataclass
 class PreExecutionResult:
@@ -61,6 +74,18 @@ class PreExecutionVerifier:
             verdict_rows=rows,
             violated_constraint_ids=hard_fails + soft_fails,
         )
+
+    def as_runnable(self):
+        def _invoke(payload: dict[str, Any]) -> PreExecutionResult:
+            return self.verify(
+                event=str(payload.get("event", "final_answer")),
+                text=str(payload.get("text", "")),
+                context=payload.get("context", {}) or {},
+            )
+
+        if RunnableLambda is not None:
+            return RunnableLambda(_invoke)
+        return _LocalRunnable(_invoke)
 
 
 def build_repair_prompt(original_prompt: str, violated_ids: list[str]) -> str:

@@ -1,0 +1,90 @@
+name: ollama_single_model_3domain_power2h
+domains: [healthcare, finance, hr]
+dataset_profile: paper3_mini
+split_strategy: temporal
+eval_split: test
+sampling_mode: paired_fixed_panel
+stress_test: false
+allow_generation_fallback: false
+disallow_toy_fallback: true
+
+provider_preflight_enabled: true
+provider_preflight_min_success_rate: 0.95
+provider_preflight_abort_on_fail: true
+provider_preflight_n_probes: 10
+provider_preflight_timeout: 45
+
+run_quality_guard_enabled: true
+fallback_guard_window: 20
+fallback_guard_max_rate: 0.05
+example_error_guard_window: 20
+example_error_guard_max_rate: 0.05
+max_consecutive_example_failures: 5
+
+certification_stage_policy: full_only
+stats_gate_policy: constraint_aware
+stats_min_group_count: 30
+
+calibration_fit:
+  enabled: true
+  scope: domain_config
+  methods: [isotonic, platt, identity]
+  target_ece: 0.12
+  min_improvement: 0.0
+  min_samples: 50
+  artifacts_dir: outputs/calibration_maps/ollama_single_model_3domain_power2h
+
+calibration_seeds: [42]
+calibration_verification_configs: [none, pre, runtime, posthoc, full]
+calibration_eval_split: validation
+calibration_max_examples_per_dataset:
+  pubmedqa: 120
+  convfinqa: 120
+  bias_in_bios: 120
+
+canary_enabled: true
+canary_seeds: [42, 123]
+canary_verification_configs: [none, full]
+canary_max_examples_per_dataset: 8
+canary_pass_thresholds:
+  valid_run_rate: 0.95
+  api_failure_rate: 0.02
+  fallback_rate: 0.05
+
+runtime_budget:
+  time_budget_hours: 2
+  hard_cap_hours: 2.5
+  eta_interval_predictions: 100
+  pause_low_priority_on_overrun: false
+
+resume_mode: fresh
+
+models:
+  - configs/models/ollama_ministral3_cloud.yaml
+verification_configs: [none, pre, runtime, posthoc, full]
+seeds: [42, 123, 456, 789, 2025]
+
+per_dataset_examples:
+  pubmedqa: 40
+  convfinqa: 40
+  bias_in_bios: 80
+
+stratified_sampling:
+  bias_in_bios:
+    field: metadata.demographics.gender
+    counts:
+      group_0: 40
+      group_1: 40
+
+min_dataset_rows:
+  pubmedqa: 40
+  convfinqa: 40
+  bias_in_bios: 80
+
+max_concurrent_runs: 2
+max_inflight_per_model:
+  ministral-3-cloud: 2
+
+example_parallelism_per_run: 2
+agentic_backend: langgraph
+async_model_invocation: true

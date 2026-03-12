@@ -1,0 +1,102 @@
+name: paper6_power12_ollama
+domains: [healthcare, finance, hr]
+dataset_profile: paper6_fast
+split_strategy: temporal
+eval_split: test
+sampling_mode: paired_fixed_panel
+stress_test: false
+allow_generation_fallback: false
+disallow_toy_fallback: true
+provider_preflight_enabled: true
+provider_preflight_min_success_rate: 0.95
+provider_preflight_abort_on_fail: true
+provider_preflight_n_probes: 20
+provider_preflight_timeout: 45
+run_quality_guard_enabled: true
+fallback_guard_window: 20
+fallback_guard_max_rate: 0.05
+example_error_guard_window: 20
+example_error_guard_max_rate: 0.05
+max_consecutive_example_failures: 5
+example_parallelism_per_run: 2
+agentic_backend: langgraph
+async_model_invocation: false
+
+certification_stage_policy: full_only
+stats_gate_policy: constraint_aware
+stats_min_group_count: 30
+
+calibration_fit:
+  enabled: true
+  methods: [isotonic, platt, identity]
+  target_ece: 0.12
+  min_improvement: 0.005
+  min_samples: 30
+  num_examples_per_domain: 240
+  artifacts_dir: outputs/calibration_maps/paper6_power12_ollama
+
+calibration_seeds: [42]
+calibration_verification_configs: [none]
+calibration_eval_split: validation
+calibration_max_examples_per_dataset:
+  medqa: 120
+  pubmedqa: 120
+  finben: 60
+  convfinqa: 60
+  winobias: 80
+  bias_in_bios: 80
+
+canary_enabled: true
+canary_seeds: [42, 123]
+canary_verification_configs: [none, full]
+canary_max_examples_per_dataset: 10
+canary_pass_thresholds:
+  valid_run_rate: 0.95
+  api_failure_rate: 0.02
+  fallback_rate: 0.05
+
+max_concurrent_runs: 3
+max_inflight_per_model:
+  ministral-3-cloud: 2
+  qwen3-next: 2
+qwen_burst_concurrency: 2
+qwen_degrade_concurrency: 1
+qwen_degrade_error_rate_threshold: 0.03
+qwen_degrade_window_calls: 50
+
+runtime_budget:
+  time_budget_hours: 12
+  hard_cap_hours: 13
+  eta_interval_predictions: 200
+  pause_low_priority_on_overrun: false
+
+resume_mode: missing_only
+
+models:
+  - configs/models/ollama_ministral3_cloud.yaml
+  - configs/models/ollama_qwen3_next.yaml
+verification_configs: [none, pre, runtime, posthoc, full]
+seeds: [42, 123, 456, 789, 2025]
+
+per_dataset_examples:
+  medqa: 30
+  pubmedqa: 30
+  finben: 30
+  convfinqa: 30
+  winobias: 50
+  bias_in_bios: 50
+
+stratified_sampling:
+  bias_in_bios:
+    field: metadata.demographics.gender
+    counts:
+      group_0: 25
+      group_1: 25
+
+min_dataset_rows:
+  medqa: 20
+  pubmedqa: 20
+  finben: 20
+  convfinqa: 20
+  winobias: 60
+  bias_in_bios: 60

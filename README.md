@@ -1,274 +1,318 @@
-# RAVA: Regulatory-Aligned Verification for AI Agents
+# RAVA
 
-Complete, runnable research codebase implementing the RAVA framework with:
-- Formal constraint specs (`HARD`, `SOFT`, `STATISTICAL`) and compositional semantics (`AND`/`OR`/`IMPLIES` with `UNCERTAIN` propagation)
-- Three-layer verifier (pre-execution, runtime monitoring, post-hoc auditing)
-- Domain-weighted reliability scoring and certification tiers aligned with the paper
-- End-to-end experiments for healthcare, finance, and HR across verification ablations
+RAVA is a research codebase for regulatory-aligned verification of AI agents in high-stakes domains. It implements:
 
-## Repository Layout
+- a typed specification language with `HARD`, `SOFT`, and `STATISTICAL` constraints
+- three verification layers: pre-execution, runtime monitoring, and post-hoc auditing
+- audited and operational scoring tracks
+- validity-envelope gating with `R_raw` vs `R_certified`
+- a LangGraph-first agent runtime with provider abstractions for Ollama Cloud, OpenAI, and mock/offline execution
+- end-to-end experiment, table, plot, and paper artifact generation
+
+## Final paper setup
+
+The latest manuscript and final certified comparison use:
+
+- domains: healthcare, finance, HR
+- final benchmark profile: `final_a6`
+- datasets:
+  - healthcare: `pubmedqa`, `medqa`
+  - finance: `convfinqa`, `finben`
+  - HR: `bias_in_bios`, `winobias`
+- models:
+  - `ministral-3-cloud`
+  - `gpt-5.4`
+- configurations:
+  - `none`, `pre`, `runtime`, `posthoc`, `full`
+- seeds:
+  - `42`, `123`, `456`, `789`, `2025`
+
+Capability claims in the paper are based on audited, full-stage, certified rows only.
+
+## Repository layout
 
 ```text
 configs/
   base.yaml
-  domains/{healthcare,finance,hr}.yaml
-  models/*.yaml
-  experiments/{default_sweep,smoke}.yaml
-specs/{healthcare,finance,hr}.yaml
+  domains/
+  experiments/
+  models/
+specs/
 scripts/
 src/rava/
+  agent/
+  experiments/
+  metrics/
+  scoring/
+  verification/
 tests/
 ```
 
+Large artifacts are intentionally ignored:
+
+- `data/`
+- `runs/`
+- `outputs/`
+- paper sources and generated paper assets
+
+That keeps the Git repository light. Reproducible artifacts are regenerated locally from the configs and code.
+
+## Requirements
+
+- Python `3.11` to `3.14`
+- Linux or macOS shell environment
+- `latexmk` + a TeX distribution to compile the paper
+- optional cloud credentials for Ollama Cloud / OpenAI
+
+Pinned agent stack:
+
+- `langchain==1.2.10`
+- `langchain-core==1.2.18`
+- `langchain-openai==1.1.11`
+- `langgraph==1.1.0`
+
 ## Installation
 
-### Option A: venv + pip
+### venv + pip
 
 ```bash
 python3.11 -m venv .venv
 source .venv/bin/activate
 pip install -U pip
 pip install -e .[dev]
-```
-
-### Option B: uv
-
-```bash
-uv venv --python 3.11
-source .venv/bin/activate
-uv pip install -e .[dev]
-```
-
-Optional extras for full dataset/model integrations:
-
-```bash
 pip install -e .[full]
 ```
 
-## Unified CLI
+### Conda
 
 ```bash
-rava run_agent --domain healthcare --model-config configs/models/ollama_ministral3_cloud.yaml "What should I do for severe chest pain?"
-rava download_datasets --domains healthcare,finance,hr --profile core
-rava preprocess_datasets --domains healthcare,finance,hr --profile core
-rava run_experiment --sweep-config configs/experiments/smoke.yaml
-rava evaluate runs/<timestamp>/healthcare/mock-v1/full/42
-rava make_tables --runs-root runs --output-dir outputs/tables
+conda env create -f configs/envs/py314.conda.yml
+conda activate rava-py314
+pip install -e .[full,dev]
 ```
 
-Equivalent module invocation:
+## Environment variables
+
+Copy [.env.example](.env.example) to `.env` and fill the keys you need.
 
 ```bash
-python -m rava.cli --help
+cp .env.example .env
 ```
 
-## Dataset Download & Preprocessing
+Supported variables:
 
-The framework includes robust download wrappers and BYO fallbacks. Raw files go to `data/raw/<dataset>/`; processed standardized JSONL goes to `data/processed/<domain>/<dataset>/data.jsonl`.
+- `OLLAMA_API_KEY`
+- `OLLAMA_BASE_URL`
+- `OPENAI_API_KEY`
+- `ANTHROPIC_API_KEY`
+- `GOOGLE_API_KEY`
 
-Common processed schema:
-- `id`
-- `domain`
-- `task`
-- `input`
-- `reference`
-- `metadata`
-- `split`
+`.env` is ignored by Git.
 
-### Healthcare
-- MedQA (USMLE): BYO loader (distribution-dependent licensing)
-- PubMedQA: Hugging Face attempt (`pubmed_qa`) with fallback instructions
-- MedHalt: BYO fallback by default
-- Enhanced profile adds: PubHealth, EHRSQL, MIMIC-IV BHC (BYO/restricted)
+## Dataset handling
 
-### Finance
-- FinBen: BYO fallback by default
-- FLUE: BYO fallback by default
-- ConvFinQA: Hugging Face attempt (`ibm/convfinqa`) with fallback
-- Enhanced profile adds: FinanceBench, TAT-QA, FinQA (BYO wrappers)
+Raw and processed datasets are not versioned. Use the dataset download and preprocessing commands instead.
 
-### HR
-- BBQ: Hugging Face attempt (`heegyu/bbq`) with fallback
-- WinoBias: BYO fallback by default
-- Jigsaw Unintended Bias (Kaggle): Kaggle API download, requires credentials
-- Synthetic resumes: deterministic template generator (`2,000` rows default)
-- Enhanced profile adds: Bias in Bios, FairJob, ACS PUMS HR slices (BYO wrappers)
-
-Generate synthetic resumes:
+### Final benchmark profile
 
 ```bash
-rava generate_synthetic_resumes --n 2000 --seed 42
-# or
-python scripts/generate_synthetic_resumes.py --n 2000 --seed 42
+rava download_datasets --domains healthcare,finance,hr --profile final_a6
+rava preprocess_datasets --domains healthcare,finance,hr --profile final_a6 --split-strategy temporal --disallow-toy-fallback
 ```
 
-### Kaggle Credentials (Jigsaw)
+### Profiles
 
-Set either env vars:
+- `core`: minimal default profile
+- `paper_hybrid`: broader mirror-backed paper profile
+- `paper6_fast`: 6-dataset fast publication profile
+- `paper3_mini`: 3-dataset certifiable mini profile
+- `primary_certification`: primary certified benchmark subset
+- `diagnostic_secondary`: secondary diagnostic benchmark subset
+- `final_a6`: final six-dataset dual-model paper profile
+
+### Dataset notes
+
+- `pubmedqa`, `convfinqa`, `bias_in_bios` are the strongest certification-friendly datasets in the current setup.
+- `medqa`, `finben`, and `winobias` are included in the final six-dataset paper sweep.
+- Kaggle-backed datasets are supported by the codebase, but they are not required for the final `final_a6` paper configuration.
+- Synthetic datasets remain supplementary and are not part of the final primary capability tables.
+
+## Quickstart
+
+### CLI smoke test
 
 ```bash
-export KAGGLE_USERNAME=...
-export KAGGLE_KEY=...
+PYTHONPATH=src python -m rava.cli --help
 ```
 
-Or place `~/.kaggle/kaggle.json`.
-
-If credentials are missing, the downloader emits actionable instructions and creates BYO guidance files.
-
-## Dataset License / Terms Notes
-
-This repository writes a `LICENSE_NOTICE.txt` per dataset folder and requires users to comply with source terms. Official references:
-- PubMedQA: <https://pubmedqa.github.io/>
-- MedQA: <https://github.com/jind11/MedQA>
-- MedHalt: <https://github.com/allenai/medhalt>
-- ConvFinQA: <https://github.com/czyssrs/ConvFinQA>
-- FLUE: <https://arxiv.org/abs/2202.12005>
-- BBQ: <https://github.com/nyu-mll/BBQ>
-- WinoBias: <https://uclanlp.github.io/corefBias/overview>
-- Jigsaw Unintended Bias: <https://www.kaggle.com/c/jigsaw-unintended-bias-in-toxicity-classification>
-
-## Provider Interface (No Hardcoded Proprietary APIs)
-
-Implemented providers:
-- `MockProvider` (deterministic, offline)
-- `LangChainOllamaCloudProvider` (`OLLAMA_API_KEY`, OpenAI-compatible endpoint `https://ollama.com/v1`)
-- `OpenAIProvider` placeholder (`OPENAI_API_KEY`)
-- `AnthropicProvider` placeholder (`ANTHROPIC_API_KEY`)
-- `GoogleProvider` placeholder (`GOOGLE_API_KEY`)
-- `LocalHFProvider` placeholder
-
-### Ollama Cloud Setup
-
-Create `.env` in repo root:
-
-```bash
-OLLAMA_API_KEY=<your_ollama_cloud_key>
-OLLAMA_BASE_URL=https://ollama.com/v1
-```
-
-The CLI auto-loads `.env` via `python-dotenv`.
-
-Use model configs in `configs/models/`.
-
-## Running Experiments
-
-### Smoke run (<1 minute, mock provider)
-
-```bash
-rava preprocess_datasets --domains healthcare,finance,hr
-rava run_experiment --sweep-config configs/experiments/smoke.yaml
-```
-
-Outputs per run:
-
-```text
-runs/<timestamp>/<domain>/<model>/<config>/<seed>/
-  trajectory.jsonl
-  predictions.jsonl
-  verdicts.jsonl
-  metrics.json
-  report.json
-  timing.json
-```
-
-### Full sweep template
-
-```bash
-rava run_experiment --sweep-config configs/experiments/default_sweep.yaml
-```
-
-### Ollama Cloud comparison (ministral-3 vs qwen3-next)
+### Offline mock smoke run
 
 ```bash
 rava preprocess_datasets --domains healthcare,finance,hr --profile core
-rava run_experiment --sweep-config configs/experiments/ollama_cloud_eval.yaml
-rava make_tables --runs-root runs --output-dir outputs/tables
+rava run_experiment \
+  --sweep-config configs/experiments/smoke.yaml \
+  --base-config configs/base.yaml \
+  --agentic-backend langgraph \
+  --example-parallelism-per-run 2 \
+  --sync-model-invocation
 ```
 
-Enhanced-dataset sweep:
+### Single example
 
 ```bash
-rava preprocess_datasets --domains healthcare,finance,hr --profile enhanced
-rava run_experiment --sweep-config configs/experiments/ollama_cloud_eval_enhanced.yaml
+rava run_agent \
+  --domain healthcare \
+  --model-config configs/models/mock.yaml \
+  --verification-config full \
+  "What should I do for severe chest pain?"
 ```
 
-Adversarial stress sweep:
+## Reproducing the final paper pipeline
+
+### 1. Provider preflight
 
 ```bash
-rava run_experiment --sweep-config configs/experiments/ollama_cloud_eval_stress.yaml
+rava preflight_provider --model-config configs/models/ollama_ministral3_cloud.yaml --n-probes 5 --timeout 30
+rava preflight_provider --model-config configs/models/openai_gpt54.yaml --n-probes 5 --timeout 30
 ```
 
-## Evaluation, Scoring, and Tables
-
-Metrics implemented:
-- Hard/soft violation rates
-- Factual grounding (`claim_precision`)
-- Claim citation coverage + evidence support rate
-- Calibration (`ECE`, 10 bins)
-- Fairness: 4/5ths, demographic parity difference, equalized odds difference
-- Source attribution score
-- Abstention rate
-- Latency metrics (overall + per verification layer)
-- Estimated token/cost metrics for assurance-cost frontiers
-
-Reliability score `R`:
-- Weighted by domain-specific configs (`configs/domains/*.yaml`)
-- Tiered certification (paper-aligned): `Tier 2 (Supervised Autonomy)`, `Tier 1 (Advisory)`, `Tier 3 (Human-in-the-Loop Required)`
-
-Generate paper-ready tables:
+### 2. Calibration
 
 ```bash
-rava make_tables --runs-root runs --output-dir outputs/tables
+rava run_experiment \
+  --sweep-config configs/experiments/final_a6_dual_model.yaml \
+  --base-config configs/base.yaml \
+  --stage calibration \
+  --agentic-backend langgraph \
+  --example-parallelism-per-run 4 \
+  --sync-model-invocation
 ```
 
-Produces:
-- `outputs/tables/healthcare.csv`
-- `outputs/tables/finance.csv`
-- `outputs/tables/hr.csv`
-- `outputs/tables/ablation.csv`
-- `outputs/tables/latency.csv`
-- `outputs/tables/prevention_detection.csv`
-- `outputs/tables/cost_frontier.csv`
-- `outputs/tables/significance.csv`
-- and matching `.tex` files
+### 3. Full certified sweep
 
-## Verification Layers
+```bash
+rava run_experiment \
+  --sweep-config configs/experiments/final_a6_dual_model.yaml \
+  --base-config configs/base.yaml \
+  --stage full \
+  --agentic-backend langgraph \
+  --example-parallelism-per-run 4 \
+  --sync-model-invocation
+```
 
-1. **Pre-execution verifier**
-   - Runs before tool calls and final answer
-   - Decision: `APPROVE`/`BLOCK`/`MODIFY`/`FLAG` (implemented with repair prompt path)
-2. **Runtime monitor**
-   - Checks action/observation transitions
-   - Dual-judge consensus (primary + heuristic secondary) with state trackers
-   - Supports halting on hard failures
-3. **Post-hoc auditor**
-   - Per-constraint verdict report
-   - Claim decomposition + retrieval-backed verification + claim-evidence graph
+### 4. Tables, evidence, and plots
 
-## Reproducibility
+```bash
+rava make_tables \
+  --runs-root runs/20260311_final_a6_dual_model_full_v2 \
+  --output-dir outputs/tables/final_a6_dual_model_full_v2 \
+  --comparison-track audited \
+  --certified-only
 
-- Deterministic seeding (`42`, `123`, `456` defaults)
-- Structured JSONL artifacts and logs
-- Environment capture in run root (`environment.json`)
-- Config-driven sweeps
+rava evidence_report \
+  --runs-root runs/20260311_final_a6_dual_model_full_v2 \
+  --output-path outputs/evidence/final_a6_dual_model_full_v2.json \
+  --comparison-track audited
+
+rava make_result_plots \
+  --tables-dir outputs/tables/final_a6_dual_model_full_v2 \
+  --output-dir figures \
+  --prefix final_a6
+
+rava make_paper_artifacts \
+  --output-dir outputs/paper_generated \
+  --base-config configs/base.yaml \
+  --sweep-configs configs/experiments/final_a6_dual_model.yaml \
+  --model-configs configs/models/ollama_ministral3_cloud.yaml,configs/models/openai_gpt54.yaml \
+  --compliance-summary outputs/compliance/challenge_summary.json
+```
+
+### 5. Optional paper build
+
+If you also keep the manuscript source locally, regenerate the paper artifacts and build it with:
+
+```bash
+latexmk -pdf -interaction=nonstopmode -halt-on-error RAVA_revised_emnlp2026.tex
+```
+
+## Main CLI commands
+
+```bash
+rava download_datasets
+rava preprocess_datasets
+rava run_agent
+rava preflight_provider
+rava run_experiment
+rava evaluate
+rava make_tables
+rava evidence_report
+rava evaluate_compliance_challenges
+rava make_result_plots
+rava make_paper_artifacts
+rava generate_synthetic_resumes
+rava generate_agentic_stress_hr
+```
+
+## Paper artifact policy
+
+The repository generates paper tables, plots, and appendix fragments locally, but those files are not meant to be part of the code-only Git push. Use:
+
+```bash
+rava make_tables
+rava make_result_plots
+rava make_paper_artifacts
+```
+
+and compile the manuscript locally if you need the paper outputs.
 
 ## Testing
 
-Run tests (no external datasets required):
+Run the full test suite:
 
 ```bash
-pytest
+PYTHONPATH=src pytest -q
 ```
 
-Included tests:
-- Spec composition semantics (`AND`/`OR`/`IMPLIES` + `UNCERTAIN`)
-- Fairness metric math
-- Reliability scoring and tiering
-- CLI smoke (`python -m rava.cli --help` and tiny mock run)
+Targeted paper/plot checks:
+
+```bash
+PYTHONPATH=src pytest -q tests/test_paper_artifacts.py tests/test_result_plots.py
+```
 
 ## Troubleshooting
 
-- `datasets` import errors: install optional deps (`pip install -e .[full]`) or use BYO files.
-- Kaggle download fails: verify `KAGGLE_USERNAME/KAGGLE_KEY` or `~/.kaggle/kaggle.json`.
-- Missing processed files: run `rava preprocess_datasets`; fallback toy splits are generated when raw data is absent.
-- No citations in outputs: switch from `MockProvider` to a real provider integration and retrieval backends.
+### Missing dataset credentials
+
+- Kaggle datasets require `KAGGLE_USERNAME` / `KAGGLE_KEY` or `~/.kaggle/kaggle.json`.
+- Restricted datasets fall back to BYO instructions instead of failing silently.
+
+### Provider issues
+
+- use `rava preflight_provider` before long sweeps
+- publication sweeps hard-fail on preflight failure when configured
+- `gpt-5.4` finance instability was fixed by:
+  - raising `max_tokens`
+  - classifying `length_limit`
+  - targeted retry budgets
+  - routing `finben` through direct structured chat
+
+### Paper build
+
+- `latexmk` is the supported build path
+- appendix tables come from generated LaTeX fragments in `outputs/paper_generated`
+- if those files are missing, regenerate them with `rava make_paper_artifacts`
+
+## Artifact policy
+
+The repository is configured to ignore:
+
+- datasets under `data/`
+- experiment runs under `runs/`
+- generated evaluation outputs under `outputs/`
+- paper sources, generated figures, and local LaTeX build files
+
+This is intentional. The source-controlled part of the project is the code, configs, scripts, and tests required to regenerate the experimental and paper artifacts locally.
+
+## License
+
+MIT for the code in this repository. Dataset licenses remain governed by their original sources.

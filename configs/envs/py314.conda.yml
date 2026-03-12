@@ -1,0 +1,15 @@
+name: rava-py314
+channels:
+  - conda-forge
+  - pytorch
+dependencies:
+  - python=3.14
+  - pip>=25
+  - setuptools>=75
+  - wheel>=0.45
+  - numpy>=2.1
+  - pandas>=2.2
+  - pyarrow>=18
+  - pytorch>=2.8
+  - pip:
+      - -e ".[full,dev]"

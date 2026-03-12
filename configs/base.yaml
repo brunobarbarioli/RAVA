@@ -9,16 +9,25 @@ runtime:
   runs_dir: runs
   outputs_dir: outputs
 
+agentic_framework:
+  backend: langgraph
+  legacy_backend_enabled: true
+  tool_cache_scope: example
+  max_tool_iterations: 64
+
 provider:
   name: mock
   model: mock-v1
   temperature: 0.0
   max_tokens: 256
+  async_model_invocation: false
 
 experiments:
   seeds: [42, 123, 456]
   verification_configs: [none, pre, runtime, posthoc, full]
   max_examples_per_dataset: 20
+  max_concurrent_runs: 1
+  example_parallelism_per_run: 1
   save_trajectories: true
 
 metrics:

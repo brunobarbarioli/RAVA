@@ -9,6 +9,19 @@ from rava.verification.judges.mock_judge import HeuristicRiskJudge, Judge, Judge
 from rava.verification.state.advice_boundary_tracker import AdviceBoundaryTracker
 from rava.verification.state.phi_leak_tracker import PhiLeakTracker
 
+try:
+    from langchain_core.runnables import RunnableLambda
+except Exception:  # pragma: no cover - optional dependency guard
+    RunnableLambda = None
+
+
+class _LocalRunnable:
+    def __init__(self, fn):
+        self._fn = fn
+
+    def invoke(self, payload: dict[str, Any]):
+        return self._fn(payload)
+
 
 @dataclass
 class RuntimeResult:
@@ -110,6 +123,19 @@ class RuntimeMonitor:
             action = VerificationAction.APPROVE
 
         return RuntimeResult(action=action, verdict_rows=rows, hard_fail_ids=hard_fails)
+
+    def as_runnable(self):
+        def _invoke(payload: dict[str, Any]) -> RuntimeResult:
+            return self.monitor(
+                action_text=str(payload.get("action_text", "")),
+                observation_text=str(payload.get("observation_text", "")),
+                context=payload.get("context", {}) or {},
+                event=str(payload.get("event", "tool_call")),
+            )
+
+        if RunnableLambda is not None:
+            return RunnableLambda(_invoke)
+        return _LocalRunnable(_invoke)
 
     @staticmethod
     def _judge_rows(event: str, primary: JudgeResult, secondary: JudgeResult) -> list[dict[str, Any]]:

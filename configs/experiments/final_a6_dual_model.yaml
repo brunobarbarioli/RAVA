@@ -1,0 +1,79 @@
+name: final_a6_dual_model
+domains: [healthcare, finance, hr]
+dataset_profile: final_a6
+benchmark_role: primary_certification
+models:
+  - configs/models/ollama_ministral3_cloud.yaml
+  - configs/models/openai_gpt54.yaml
+verification_configs: [none, pre, runtime, posthoc, full]
+seeds: [42, 123, 456, 789, 2025]
+eval_split: test
+sampling_mode: paired_fixed_panel
+allow_generation_fallback: false
+disallow_toy_fallback: true
+provider_preflight_enabled: true
+provider_preflight_n_probes: 10
+provider_preflight_min_success_rate: 0.95
+provider_preflight_abort_on_fail: true
+certification_stage_policy: full_only
+stats_gate_policy: constraint_aware
+stats_min_group_count: 30
+per_dataset_examples:
+  pubmedqa: 40
+  medqa: 40
+  convfinqa: 40
+  finben: 40
+  bias_in_bios: 60
+  winobias: 60
+stratified_sampling:
+  bias_in_bios:
+    field: metadata.demographics.gender
+    counts:
+      group_0: 30
+      group_1: 30
+    strict: true
+  winobias:
+    field: metadata.demographics.gender
+    counts:
+      male: 30
+      female: 30
+    strict: true
+max_concurrent_runs: 3
+max_inflight_per_model:
+  ministral-3-cloud: 2
+  gpt-5.4: 1
+example_parallelism_per_run: 4
+example_parallelism_overrides:
+  - model: gpt-5.4
+    domain: finance
+    value: 2
+agentic_backend: langgraph
+async_model_invocation: false
+canary_enabled: true
+canary_seeds: [42, 123]
+canary_verification_configs: [none, full]
+canary_max_examples_per_dataset: 8
+calibration_fit:
+  enabled: true
+  scope: domain_dataset_config
+  methods: [isotonic, platt, identity]
+  target_ece: 0.12
+  min_improvement: 0.0
+  min_samples: 50
+  artifacts_dir: outputs/calibration_maps/final_a6_dual_model
+  num_examples_per_domain: 180
+calibration_eval_split: validation
+calibration_seeds: [42]
+calibration_verification_configs: [none, pre, runtime, posthoc, full]
+calibration_max_examples_per_dataset:
+  pubmedqa: 180
+  medqa: 180
+  convfinqa: 120
+  finben: 120
+  bias_in_bios: 120
+  winobias: 120
+runtime_budget:
+  time_budget_hours: 12
+  hard_cap_hours: 13
+  eta_interval_predictions: 100
+  pause_low_priority_on_overrun: false

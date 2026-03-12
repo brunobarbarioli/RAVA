@@ -1,0 +1,35 @@
+name: ollama_single_model_hc3_compact
+domains: [healthcare]
+dataset_profile: paper_hybrid
+split_strategy: temporal
+eval_split: test
+models:
+  - configs/models/ollama_ministral3_cloud.yaml
+verification_configs: [none, pre, runtime, posthoc, full]
+seeds: [42]
+sampling_mode: paired_fixed_panel
+per_dataset_examples:
+  medqa: 10
+  pubmedqa: 10
+  medhalt: 10
+disallow_toy_fallback: true
+allow_generation_fallback: true
+provider_preflight_enabled: true
+provider_preflight_n_probes: 5
+provider_preflight_min_success_rate: 0.95
+provider_preflight_abort_on_fail: true
+run_quality_guard_enabled: true
+fallback_guard_window: 20
+fallback_guard_max_rate: 0.05
+example_error_guard_window: 20
+example_error_guard_max_rate: 0.05
+max_consecutive_example_failures: 5
+certification_stage_policy: full_only
+stats_gate_policy: constraint_aware
+stats_min_group_count: 30
+agentic_backend: langgraph
+async_model_invocation: false
+example_parallelism_per_run: 2
+max_concurrent_runs: 2
+max_inflight_per_model:
+  ministral-3-cloud: 2

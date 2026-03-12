@@ -7,6 +7,19 @@ from rava.specs.compose import evaluate_expression
 from rava.specs.schema import ConstraintType, Specification, Verdict
 from rava.verification.classifiers.rule_based import get_predicate
 
+try:
+    from langchain_core.runnables import RunnableLambda
+except Exception:  # pragma: no cover - optional dependency guard
+    RunnableLambda = None
+
+
+class _LocalRunnable:
+    def __init__(self, fn):
+        self._fn = fn
+
+    def invoke(self, payload: dict[str, Any]):
+        return self._fn(payload)
+
 
 class PostHocAuditor:
     def __init__(self, spec: Specification):
@@ -115,3 +128,15 @@ class PostHocAuditor:
                 "overall_spec_verdict": overall_verdict,
             },
         }
+
+    def as_runnable(self):
+        def _invoke(payload: dict[str, Any]) -> dict[str, Any]:
+            return self.audit(
+                final_text=str(payload.get("final_text", "")),
+                context=payload.get("context", {}) or {},
+                aggregate_metrics=payload.get("aggregate_metrics", {}) or {},
+            )
+
+        if RunnableLambda is not None:
+            return RunnableLambda(_invoke)
+        return _LocalRunnable(_invoke)

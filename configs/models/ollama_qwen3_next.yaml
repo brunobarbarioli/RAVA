@@ -5,4 +5,15 @@ temperature: 0.0
 max_tokens: 384
 base_url: https://ollama.com/v1
 api_key_env: OLLAMA_API_KEY
-timeout: 120
+scheduler_class: slow
+timeout: 150
+retry:
+  max_attempts: 4
+  initial_backoff_s: 1.0
+  max_backoff_s: 10.0
+  taxonomies: [timeout, upstream_5xx, rate_limited, connection_error]
+confidence_affine:
+  # Conservative calibration profile learned from validation-style diagnostics.
+  offset: 0.10
+  scale: 0.20
+allow_generation_fallback: true

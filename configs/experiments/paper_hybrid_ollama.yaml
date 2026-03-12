@@ -1,0 +1,44 @@
+name: paper_hybrid_ollama
+domains: [healthcare, finance, hr]
+dataset_profile: paper_hybrid
+split_strategy: temporal
+eval_split: test
+stress_test: false
+allow_generation_fallback: false
+disallow_toy_fallback: true
+provider_preflight_enabled: true
+provider_preflight_min_success_rate: 0.95
+provider_preflight_abort_on_fail: true
+provider_preflight_n_probes: 5
+provider_preflight_timeout: 30
+run_quality_guard_enabled: true
+fallback_guard_window: 20
+fallback_guard_max_rate: 0.05
+max_concurrent_runs: 4
+models:
+  - configs/models/ollama_ministral3_cloud.yaml
+  - configs/models/ollama_qwen3_next.yaml
+verification_configs: [none, pre, runtime, posthoc, full]
+seeds: [42, 123, 456, 789, 2025]
+max_examples_per_dataset:
+  medqa: 100
+  pubmedqa: 100
+  medhalt: 100
+  finben: 100
+  flue: 100
+  convfinqa: 100
+  bbq: 100
+  winobias: 100
+  jigsaw_unintended_bias: 100
+  synthetic_resumes: 600
+min_dataset_rows:
+  medqa: 100
+  pubmedqa: 100
+  medhalt: 100
+  finben: 100
+  flue: 100
+  convfinqa: 100
+  bbq: 100
+  winobias: 100
+  jigsaw_unintended_bias: 100
+  synthetic_resumes: 600

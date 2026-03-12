@@ -3,6 +3,8 @@ __pycache__/
 *.so
 .venv/
 .env
+.env.*
+!.env.example
 .pytest_cache/
 .mypy_cache/
 .coverage
@@ -21,3 +23,27 @@ build/
 
 # logs
 *.jsonl
+
+# paper build artifacts
+/RAVA_revised_emnlp2026.tex
+/RAVA_revised_emnlp2026.pdf
+/acl.sty
+/acl_natbib.bst
+/custom.bib
+/figures/
+*.aux
+*.bbl
+*.bcf
+*.blg
+*.fdb_latexmk
+*.fls
+*.log
+*.lof
+*.lot
+*.nav
+*.out
+*.run.xml
+*.snm
+*.synctex.gz
+*.toc
+*.xdv

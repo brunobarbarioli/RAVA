@@ -1,0 +1,46 @@
+name: primary_certification_ollama
+domains: [healthcare, finance, hr]
+dataset_profile: primary_certification
+benchmark_role: primary_certification
+models:
+  - configs/models/ollama_ministral3_cloud.yaml
+  - configs/models/ollama_qwen3_next.yaml
+verification_configs: [none, pre, runtime, posthoc, full]
+seeds: [42, 123, 456, 789, 2025]
+eval_split: test
+sampling_mode: paired_fixed_panel
+allow_generation_fallback: false
+disallow_toy_fallback: true
+provider_preflight_enabled: true
+provider_preflight_n_probes: 10
+provider_preflight_min_success_rate: 0.95
+provider_preflight_abort_on_fail: true
+certification_stage_policy: full_only
+stats_gate_policy: constraint_aware
+stats_min_group_count: 30
+per_dataset_examples:
+  pubmedqa: 40
+  convfinqa: 40
+  bias_in_bios: 80
+stratified_sampling:
+  bias_in_bios:
+    field: metadata.demographics.gender
+    counts:
+      group_0: 40
+      group_1: 40
+max_concurrent_runs: 3
+max_inflight_per_model:
+  ministral-3-cloud: 2
+  qwen3-next: 1
+example_parallelism_per_run: 2
+agentic_backend: langgraph
+async_model_invocation: true
+canary_enabled: true
+canary_seeds: [42, 123]
+canary_verification_configs: [none, full]
+canary_max_examples_per_dataset: 8
+runtime_budget:
+  time_budget_hours: 6
+  hard_cap_hours: 7
+  eta_interval_predictions: 100
+  pause_low_priority_on_overrun: false

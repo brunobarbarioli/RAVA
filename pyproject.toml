@@ -7,31 +7,33 @@ name = "rava"
 version = "0.1.0"
 description = "Regulatory-Aligned Verification for AI Agents research framework"
 readme = "README.md"
-requires-python = ">=3.11"
+requires-python = ">=3.11,<3.15"
 license = { text = "MIT" }
 authors = [{ name = "RAVA Team" }]
 dependencies = [
-  "typer>=0.12.3",
-  "rich>=13.7.1",
-  "pydantic>=2.8.2",
-  "PyYAML>=6.0.1",
-  "tqdm>=4.66.4",
-  "numpy>=1.26.4",
-  "pandas>=2.2.2",
+  "typer>=0.24.1",
+  "rich>=13.9.4",
+  "pydantic>=2.10.5",
+  "PyYAML>=6.0.2",
+  "tqdm>=4.67.1",
+  "numpy>=2.1.0",
+  "pandas>=2.2.3",
   "python-dotenv>=1.0.1",
-  "langchain>=0.3.27",
-  "langchain-openai>=0.3.30",
+  "langchain==1.2.10",
+  "langchain-core==1.2.18",
+  "langchain-openai==1.1.11",
+  "langgraph==1.1.0",
 ]
 
 [project.optional-dependencies]
 dev = [
-  "pytest>=8.2.0",
+  "pytest>=9.0.0",
 ]
 full = [
-  "datasets>=2.20.0",
-  "kaggle>=1.6.17",
-  "transformers>=4.43.0",
-  "torch>=2.3.0",
+  "datasets>=4.6.0",
+  "kaggle>=2.0.0",
+  "transformers>=5.2.0",
+  "matplotlib>=3.10.0",
 ]
 
 [project.scripts]

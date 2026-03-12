@@ -1,0 +1,14 @@
+name: gpt-5.4
+provider: openai
+model: gpt-5.4
+temperature: 0.0
+max_tokens: 10000
+api_key_env: OPENAI_API_KEY
+timeout: 120
+scheduler_class: slow
+retry:
+  max_attempts: 4
+  initial_backoff_s: 0.75
+  max_backoff_s: 8.0
+  taxonomies: [timeout, upstream_5xx, rate_limited, connection_error]
+allow_generation_fallback: true

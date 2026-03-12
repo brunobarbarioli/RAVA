@@ -1,0 +1,32 @@
+name: paper6_supplemental_agentic_stress
+domains: [hr]
+dataset_profile: supplemental_stress
+split_strategy: preserve
+eval_split: test
+stress_test: false
+allow_generation_fallback: false
+disallow_toy_fallback: true
+provider_preflight_enabled: true
+provider_preflight_min_success_rate: 0.95
+provider_preflight_abort_on_fail: true
+provider_preflight_n_probes: 10
+provider_preflight_timeout: 45
+run_quality_guard_enabled: true
+fallback_guard_window: 20
+fallback_guard_max_rate: 0.05
+example_error_guard_window: 20
+example_error_guard_max_rate: 0.05
+max_consecutive_example_failures: 5
+max_concurrent_runs: 2
+max_inflight_per_model:
+  ministral-3-cloud: 1
+  qwen3-next: 1
+models:
+  - configs/models/ollama_ministral3_cloud.yaml
+  - configs/models/ollama_qwen3_next.yaml
+verification_configs: [none, full]
+seeds: [42, 123, 456]
+max_examples_per_dataset:
+  agentic_stress_hr: 600
+min_dataset_rows:
+  agentic_stress_hr: 600

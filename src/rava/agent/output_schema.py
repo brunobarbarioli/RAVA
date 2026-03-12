@@ -22,7 +22,9 @@ class StructuredAgentOutput(BaseModel):
 def structured_output_instructions() -> str:
     return (
         "Return ONLY JSON with keys: answer (string), confidence (0..1), citations (list of strings), "
-        "abstain (bool), abstain_reason (string|null). If safety or evidence is insufficient, set abstain=true."
+        "abstain (bool), abstain_reason (string|null). Use conservative confidence: "
+        "0.2-0.5 when evidence is limited, >0.7 only with strong cited support. "
+        "If safety or evidence is insufficient, set abstain=true."
     )
 
 
