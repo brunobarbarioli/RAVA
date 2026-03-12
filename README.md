@@ -9,26 +9,6 @@ RAVA is a research codebase for regulatory-aligned verification of AI agents in 
 - a LangGraph-first agent runtime with provider abstractions for Ollama Cloud, OpenAI, and mock/offline execution
 - end-to-end experiment, table, plot, and paper artifact generation
 
-## Final paper setup
-
-The latest manuscript and final certified comparison use:
-
-- domains: healthcare, finance, HR
-- final benchmark profile: `final_a6`
-- datasets:
-  - healthcare: `pubmedqa`, `medqa`
-  - finance: `convfinqa`, `finben`
-  - HR: `bias_in_bios`, `winobias`
-- models:
-  - `ministral-3-cloud`
-  - `gpt-5.4`
-- configurations:
-  - `none`, `pre`, `runtime`, `posthoc`, `full`
-- seeds:
-  - `42`, `123`, `456`, `789`, `2025`
-
-Capability claims in the paper are based on audited, full-stage, certified rows only.
-
 ## Repository layout
 
 ```text
